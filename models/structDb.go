@@ -73,7 +73,13 @@ func convertOriginStruct(db StructDb) (afterStruct string, err error) {
 		afterStruct += "type " + core.ToUpperCamel(db.Name) + " struct { \n"
 
 		for _, item := range list {
-			afterStruct += convertStructItemToString(item) + "\n"
+			if item.ParentId == "-1" {
+				if item.Type == StructFieldTypeArray || item.Type == StructFieldTypeObject {
+					afterStruct += convertStructItemChildToString(item, list)
+				} else {
+					afterStruct += convertStructItemToString(item) + "\n"
+				}
+			}
 		}
 
 		afterStruct += " } \n"
@@ -87,54 +93,90 @@ func convertOriginStruct(db StructDb) (afterStruct string, err error) {
 // todo 需要补充 xml、json、form 灵活组合生成方式
 func convertStructItemToString(item BeforeConvertStructItem) (str string) {
 
-	if item.Type == StructTypeOrm {
-
-		name := item.Name
-		upperCamelName := core.ToUpperCamel(item.Name)
-		fieldType := item.Type
-
-		s := ""
-		if item.Type == StructFieldTypeInt || item.Type == StructFieldTypeInt64 {
-			s = "default(0)"
-		}
-		if item.Type == StructFieldTypeString {
-			s = "size(" + strconv.Itoa(item.FieldLen) + ")"
-		}
-		if item.Type == StructFieldTypeText {
-			s = "type(text)"
-			fieldType = "string"
-		}
-		if item.Type == StructFieldTypeDateTime {
-			s = "type(datetime)"
-			fieldType = "time.Time"
-		}
-
-		if item.Description != "" {
-			s += ";description(" + item.Description + ")"
-		}
-
-		str = fmt.Sprintf("%s %s `orm:\"%s\" json:\"%s\"` \n", upperCamelName, fieldType, s, name)
+	switch item.Type {
+	case StructTypeOrm:
+		str = convertToOrmString(item)
+	case StructTypeNormal:
+		str = convertToNormalString(item)
 	}
-
-	if item.Type == StructTypeNormal {
-		s := ""
-
-		name := item.Name
-		upperCamelName := core.ToUpperCamel(item.Name)
-		fieldType := item.Type
-
-		if item.Type == StructFieldTypeInt || item.Type == StructFieldTypeInt64 || item.Type == StructFieldTypeString || item.Type == StructFieldTypeBool {
-			s += `json:"` + name + `"`
-		}
-
-		if item.Description != "" {
-			s += " description:\"" + item.Description + "\""
-		}
-
-		str = fmt.Sprintf("%s %s `%s` \n", upperCamelName, fieldType, s)
-	}
-
 	return str
+}
+
+func convertToOrmString(item BeforeConvertStructItem) string {
+	underScoreName := item.Name
+	upperCamelName := core.ToUpperCamel(item.Name)
+	fieldType := item.Type
+
+	s := ""
+	if item.Type == StructFieldTypeInt || item.Type == StructFieldTypeInt64 {
+		s = "default(0)"
+	}
+	if item.Type == StructFieldTypeString {
+		s = "size(" + strconv.Itoa(item.FieldLen) + ")"
+	}
+	if item.Type == StructFieldTypeText {
+		s = "type(text)"
+		fieldType = "string"
+	}
+	if item.Type == StructFieldTypeDateTime {
+		s = "type(datetime)"
+		fieldType = "time.Time"
+	}
+
+	if item.Description != "" {
+		s += ";description(" + item.Description + ")"
+	}
+
+	return fmt.Sprintf("%s %s `orm:\"%s\" json:\"%s\"` \n", upperCamelName, fieldType, s, underScoreName)
+}
+
+func convertToNormalString(item BeforeConvertStructItem) string {
+	s := ""
+
+	underScoreName := item.Name
+	upperCamelName := core.ToUpperCamel(item.Name)
+	fieldType := item.Type
+
+	if item.Type == StructFieldTypeInt || item.Type == StructFieldTypeInt64 || item.Type == StructFieldTypeString || item.Type == StructFieldTypeBool {
+		s += `json:"` + underScoreName + `"`
+	}
+
+	if item.Description != "" {
+		s += " description:\"" + item.Description + "\""
+	}
+
+	return fmt.Sprintf("%s %s `%s` \n", upperCamelName, fieldType, s)
+}
+
+/*
+	单条记录转化为结构体字符串，采用递归方法
+
+	例：MyInfo struct {
+	   Id string `json:"id"`
+	   Name string `json:"name"`
+	} `json:"my_info"`
+*/
+func convertStructItemChildToString(actionItem BeforeConvertStructItem, list []BeforeConvertStructItem) string {
+
+	upperCamelName := core.ToUpperCamel(actionItem.Name)
+	underScoreName := actionItem.Name
+	var str string
+	if actionItem.Type == StructFieldTypeObject {
+		str += "%s struct { \n"
+	} else {
+		str += "%s []struct { \n"
+	}
+	for _, i := range list {
+		if i.ParentId == actionItem.MemoryId {
+			if i.Type == StructFieldTypeObject || i.Type == StructFieldTypeArray {
+				str += convertStructItemChildToString(i, list)
+			} else {
+				str += convertStructItemToString(i) + "\n"
+			}
+		}
+	}
+	str += "} `json:\"%s\"` \n"
+	return fmt.Sprintf(str, upperCamelName, underScoreName)
 }
 
 func init() {

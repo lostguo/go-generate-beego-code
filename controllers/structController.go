@@ -4,12 +4,10 @@ import (
 	"go-generate-code/models"
 
 	"github.com/beego/beego/v2/core/logs"
-
-	beego "github.com/beego/beego/v2/server/web"
 )
 
 type StructController struct {
-	beego.Controller
+	BaseController
 }
 
 func (c *StructController) Prepare() {
@@ -25,6 +23,7 @@ func (c *StructController) List() {
 
 func (c *StructController) StructConfig() {
 	var rsp CommonRsp
+	rsp.Code = SuccessWebCode
 	rsp.Data = map[string]interface{}{
 		"orm_types":    models.OrmStructFieldType,
 		"normal_types": models.NormalStructFieldType,
