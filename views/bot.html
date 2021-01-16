@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bot 在线接口访问</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css">
+</head>
+<style rel="stylesheet">
+    .cxj-h2 {
+        text-align: center;
+        line-height: 60px;
+    }
+
+    pre {
+        outline: 1px solid #ccc;
+    }
+
+    .string {
+        color: green;
+    }
+
+    .number {
+        color: darkorange;
+    }
+
+    .boolean {
+        color: blue;
+    }
+
+    .null {
+        color: magenta;
+    }
+
+    .key {
+        color: red;
+    }
+
+    .cxj-padding80 {
+        padding-left: 110px;
+    }
+</style>
+<body>
+<div class="layui-container">
+    <div class="layui-row">
+        <div class="layui-col-md12 cxj-h2">
+            <h2>Bot 在线接口访问</h2>
+        </div>
+        <div class="layui-col-md12">
+            <form class="layui-form" action="">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">账号</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="account" required lay-verify="required" placeholder="请输入账号"
+                               autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">sessionID</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="sessionId" required lay-verify="required" placeholder="请输入sessionId"
+                               autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">Pubkey</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="pubkey"  placeholder="请输入pubkey"
+                               autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">问句</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="question" required lay-verify="required" placeholder="请输入问句"
+                               autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="layui-col-md12 cxj-padding80">
+            <pre id="botResponseText" class="layui-code" lay-title="Yibot回包"></pre>
+        </div>
+    </div>
+</div>
+
+
+</body>
+<script type="text/javascript" src="/static/jquery-3.5.1.min.js"></script>
+<script src="/static/layui/layui.js"></script>
+<script>
+    //Demo
+    layui.use(['form', "code"], function () {
+        let form = layui.form;
+        let code = layui.code;
+        //监听提交
+        form.on('submit(formDemo)', function (data) {
+            $.ajax({
+                url: "/helper/test",
+                type: "Post",
+                dataType: "json",
+                contentType: "application/json;charset=utf-8",
+                data: JSON.stringify(data.field),
+                success: function (data) {
+                    $("#botResponseText").text(JSON.stringify(data, null, 4))
+                    code({
+                        title: 'Yibot回包'
+                    });
+                },
+                error: function (data) {
+                    layer.msg('错误' + data.msg);
+                }
+            });
+            return false;
+        });
+    });
+
+
+</script>
+</html>
