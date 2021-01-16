@@ -1,0 +1,4 @@
+.idea/
+lastupdate.tmp
+go-generate-code
+sqlite3/*.db

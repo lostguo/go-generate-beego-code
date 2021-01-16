@@ -15,15 +15,9 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
-		beego.NSNamespace("/object",
-			beego.NSInclude(
-				&controllers.ObjectController{},
-			),
-		),
-		beego.NSNamespace("/user",
-			beego.NSInclude(
-				&controllers.UserController{},
-			),
+		beego.NSNamespace("/struct",
+			beego.NSRouter("/list", &controllers.StructController{}, "get:List"),
+			beego.NSRouter("/config", &controllers.StructController{}, "get:StructConfig"),
 		),
 	)
 	beego.AddNamespace(ns)
