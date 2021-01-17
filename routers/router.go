@@ -18,6 +18,7 @@ func init() {
 		beego.NSNamespace("/struct",
 			beego.NSRouter("/list", &controllers.StructController{}, "get:List"),
 			beego.NSRouter("/config", &controllers.StructController{}, "get:StructConfig"),
+			beego.NSRouter("/generate", &controllers.StructController{}, "post:Generate"),
 		),
 	)
 	beego.AddNamespace(ns)

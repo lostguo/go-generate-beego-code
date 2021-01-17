@@ -38,5 +38,8 @@ func main() {
 		orm.Debug = true
 	}
 
+	if err := logs.SetLogger(logs.AdapterFile, `{"filename":"./logs/runtime/runtime.log","level":7,"maxlines":0,"maxsize":0,"daily":true,"maxdays":10,"color":true,"perm":"755"}`); err != nil {
+	}
+
 	beego.Run()
 }
